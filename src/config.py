@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     CLIENT_SECRET: str
     OPEN_AI_MODEL: str 
     BASE_URL: str
-    MCP_URL:str
+
     LIQUID_MODEL: str 
     OPENROUTER_API_KEY: str = ""
     GOOGLE_REDIRECT_URI: str = "https://inbox-os-ai.onrender.com/gmail/g/callback"
