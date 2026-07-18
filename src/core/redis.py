@@ -1,15 +1,15 @@
 import logging
 from upstash_redis.asyncio import Redis
-from src.config import configure
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 redis_client = Redis(
-    url=configure.UPSTASH_REDIS_REST_URL,
-    token=configure.UPSTASH_REDIS_REST_TOKEN
+    url=settings.UPSTASH_REDIS_REST_URL,
+    token=settings.UPSTASH_REDIS_REST_TOKEN
 )
 
-JTI_EXPIRY = 60 * 60 * 24 * 7  
+JTI_EXPIRY = 60 * 60 * 24 * 30
 
 async def add_jti_to_blacklist(jti: str) -> None:
     """Blacklist a JWT ID so it can no longer be used."""

@@ -4,12 +4,12 @@ from sqlalchemy.orm import sessionmaker
 from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.store.postgres import AsyncPostgresStore
-from src.config import configure
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 engine = create_async_engine(
-    configure.DATABASE_URL,
+    settings.DATABASE_URL,
     echo=False,
     pool_size=10,
     max_overflow=20,
@@ -38,7 +38,7 @@ async def get_session():
             await session.rollback()
             raise
 
-_PG_URL = configure.DATABASE_URL.replace("+asyncpg", "")
+_PG_URL = settings.DATABASE_URL.replace("+asyncpg", "")
 
 _pool: AsyncConnectionPool | None = None
 _checkpointer: AsyncPostgresSaver | None = None

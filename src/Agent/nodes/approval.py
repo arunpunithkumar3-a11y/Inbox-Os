@@ -1,6 +1,8 @@
 import logging
+
 from langchain_core.messages import ToolMessage
 from langgraph.types import interrupt
+
 from src.agent.state import GmailState
 
 logger = logging.getLogger(__name__)
@@ -23,26 +25,20 @@ async def Approval_Agent(state: GmailState):
                 break
         if is_dangerous:
             dangerous_calls.append(
-                {
-                    "tool": tool_call["name"],
-                    "args": tool_call["args"]
-                }
+                {"tool": tool_call["name"], "args": tool_call["args"]}
             )
     if not dangerous_calls:
         return {}
-    approval = interrupt(
-        {
-            "type": "tool_approval",
-            "tool_calls": dangerous_calls
-        }
-    )  
+    approval = interrupt({"type": "tool_approval", "tool_calls": dangerous_calls})
     if not approval["approved"]:
-        first_tool_call_id = last_message.tool_calls[0]["id"] if last_message.tool_calls else "mock_id"
+        first_tool_call_id = (
+            last_message.tool_calls[0]["id"] if last_message.tool_calls else "mock_id"
+        )
         return {
             "messages": [
                 ToolMessage(
                     content="Execution rejected by user",
-                    tool_call_id=first_tool_call_id
+                    tool_call_id=first_tool_call_id,
                 )
             ]
         }

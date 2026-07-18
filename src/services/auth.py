@@ -1,22 +1,24 @@
 import logging
-from src.models.database import User
-from sqlmodel import select
+
 from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlmodel import select
+
 from src.core.security import create_hash_password
 from src.models.auth import UserSignup
+from src.models.database import User
 
 logger = logging.getLogger(__name__)
 
 
 class UserService:
-
     async def get_user_by_id(self, uid: str, session: AsyncSession):
         import uuid
+
         try:
             uuid_uid = uuid.UUID(uid) if isinstance(uid, str) else uid
         except ValueError:
             uuid_uid = uid
-        saas_stmt = select(User).where(User.uid == uuid_uid) # wait, saas_stmt -> stmt
+
         stmt = select(User).where(User.uid == uuid_uid)
         result = await session.execute(stmt)
         return result.scalars().first()

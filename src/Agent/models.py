@@ -2,24 +2,18 @@ from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
 
 
-class planner(BaseModel):
-    tools_available: List[str] = [
-        "read_emails",
-        "send_email",
-        "reply_to_email",
-        "mark_as_read",
-        "mark_as_unread",
-        "archive_email",
-        "trash_email",
-        "add_label",
-        "remove_label",
-        "list_labels",
-        "create_draft",
-        "get_email_stats",
-    ]
-    tool_to_use: List[str] = Field(description="List of tools to execute")
-    reason: str = Field(description="Reason for using these tools")
-    executing_plan_context: str = Field(description="Execution context for the tools")
+class Planner(BaseModel):
+    tool_to_use: List[str] = Field(
+        description="Ordered list of tools that should be executed."
+    )
+
+    execution_context: str = Field(
+        description="Clear execution instructions for the executor, including search queries, parameters, email content, and any important context required to execute the tools."
+    )
+
+    reasoning: str = Field(
+        description="A brief explanation of why this execution plan was chosen."
+    )
 
 
 class ExtractItem(BaseModel):

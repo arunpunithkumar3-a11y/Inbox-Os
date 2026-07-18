@@ -4,7 +4,7 @@ from src.gmail.service import get_gmail_tool
 
 
 @tool
-async def read_emails(query: str = "", max_results: int = 10, config: RunnableConfig = None) -> list:
+async def read_emails(query: str = "", max_results: int = 5, config: RunnableConfig = None) -> list:
     """Fetch emails using search queries.
     
     query examples:

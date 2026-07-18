@@ -1,19 +1,24 @@
 import logging
 import uuid
-import jwt
 from datetime import datetime, timedelta, timezone
-from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status, Request
+
+import jwt
+from cryptography.fernet import Fernet
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from src.config import configure
+from passlib.context import CryptContext
+
 from src.core.redis import token_in_blacklist
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-ACCESS_TOKEN_EXPIRY = 60 * 60 * 24 * 7 
-
+ACCESS_TOKEN_EXPIRY = 3600
+key = settings.SECRET_KEY
+helper = Fernet(key.encode())
 security = HTTPBearer()
+
 
 def create_hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -31,7 +36,7 @@ def create_access_token(
     )
 
     payload = {
-        " Saas_user_data": data, # wait, let's keep Saas_user_data as "user_data" to match existing code
+        " Saas_user_data": data,  # wait, let's keep Saas_user_data as "user_data" to match existing code
         "user_data": data,
         "jti": str(uuid.uuid4()),
         "exp": expiry,
@@ -40,8 +45,8 @@ def create_access_token(
 
     token = jwt.encode(
         payload,
-        configure.JWT_SECRET,
-        algorithm=configure.JWT_ALGORITHM,
+        settings.JWT_SECRET,
+        algorithm=settings.JWT_ALGORITHM,
     )
 
     return token
@@ -51,8 +56,8 @@ def decode_access_token(token: str) -> dict | None:
     try:
         token_data = jwt.decode(
             token,
-            configure.JWT_SECRET,
-            algorithms=[configure.JWT_ALGORITHM],
+            settings.JWT_SECRET,
+            algorithms=[settings.JWT_ALGORITHM],
         )
         return token_data
 
@@ -124,5 +129,27 @@ async def verify__token(request: Request):
 
     payload = decode_access_token(token)
     if not payload:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
+        )
     return payload
+
+
+def encrypt_token(token: str) -> str:
+    if not token:
+        return token
+    try:
+        return helper.encrypt(token.encode()).decode()
+    except Exception as e:
+        logger.error(f"Token encryption failed{e}")
+        return token
+
+
+def decrypt_token(encrypted_token: str) -> str:
+    if not encrypted_token:
+        return encrypted_token
+    try:
+        return helper.decrypt(encrypted_token.encode()).decode()
+    except Exception:
+        logger.warning("Token decryption failed; assuming plaintext.")
+        return encrypted_token

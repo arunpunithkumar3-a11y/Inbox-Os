@@ -1,20 +1,21 @@
 import asyncio
-import sys
-
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 import logging
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.agent import Agent_router
-from src.api.auth import auth_router
-from src.api.gmail import google_router
 
-from src.config import configure
-from src.core.database import close_db, init_db
+from src.api.v1.agent import Agent_router
+from src.api.v1.auth import auth_router
+from src.api.v1.gmail import google_router
+from src.core.config import settings
+from src.core.database import close_db
+
+# environment variables loaded via settings
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,8 +28,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+
     yield
+    from src.core.redis import redis_client
+
+    await redis_client.close()
     await close_db()
 
 
@@ -50,13 +54,10 @@ allowed_origins = [
     "https://inbox-os.vercel.app",  # Fixed typo from inbos-os
 ]
 
-if configure.ALLOWED_ORIGINS:
+allowed_origins_env = settings.ALLOWED_ORIGINS
+if allowed_origins_env:
     allowed_origins.extend(
-        [
-            origin.strip()
-            for origin in configure.ALLOWED_ORIGINS.split(",")
-            if origin.strip()
-        ]
+        [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
     )
 allowed_origins = list(set(allowed_origins))
 

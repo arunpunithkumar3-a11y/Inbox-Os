@@ -13,7 +13,7 @@ def load_prompt_text(filename: str) -> str:
 def get_planner_prompt() -> ChatPromptTemplate:
     return ChatPromptTemplate.from_messages([
         ("system", load_prompt_text("planner.md")),
-        ("human", "query:{query}\navailable tools:{tools}\nconfidence_score:{conf}")
+        ("human", "query: {query}")
     ])
 
 

@@ -2,12 +2,10 @@ import logging
 from langchain_core.messages import SystemMessage
 from src.agent.state import GmailState
 from src.agent.prompts import get_system_prompt
-from src.agent.tools import llm
+from src.agent.tools import get_llm
 from src.core.database import get_store
 
 logger = logging.getLogger(__name__)
-
-prompt_chain = (get_system_prompt() | llm).with_retry(stop_after_attempt=3)
 
 
 async def direct(state: GmailState, config=None) -> dict:
@@ -36,6 +34,8 @@ async def direct(state: GmailState, config=None) -> dict:
         history_msgs.append(SystemMessage(content=f"Summary of earlier messages: {summary}"))
 
     try:
+        model = await get_llm()
+        prompt_chain = (get_system_prompt() | model).with_retry(stop_after_attempt=3)
         response = await prompt_chain.ainvoke({
             "query": query,
             "history": history_msgs,

@@ -2,11 +2,9 @@ import logging
 from src.agent.state import GmailState
 from src.agent.prompts import get_router_prompt
 from src.agent.models import router as router_model
-from src.agent.tools import llm
+from src.agent.tools import get_llm
 
 logger = logging.getLogger(__name__)
-
-router_chain = (get_router_prompt() | llm.with_structured_output(router_model, method="json_mode")).with_retry(stop_after_attempt=3)
 
 
 async def router(state: GmailState) -> dict:
@@ -15,6 +13,8 @@ async def router(state: GmailState) -> dict:
     query = state["user_query"]
 
     try:
+        model = await get_llm()
+        router_chain = (get_router_prompt() | model.with_structured_output(router_model, method="json_mode")).with_retry(stop_after_attempt=3)
         response = await router_chain.ainvoke({
             "query": query,
             "messages": state["messages"],

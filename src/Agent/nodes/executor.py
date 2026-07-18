@@ -1,11 +1,9 @@
 import logging
 from src.agent.state import GmailState
 from src.agent.prompts import get_executor_prompt
-from src.agent.tools import llm_with_tools, formatted_tools_desc
+from src.agent.tools import get_llm, formatted_tools_desc, tools_list
 
 logger = logging.getLogger(__name__)
-
-ex_chain = (get_executor_prompt() | llm_with_tools).with_retry(stop_after_attempt=3)
 
 
 async def Executor_agent(state: GmailState) -> dict:
@@ -26,6 +24,9 @@ async def Executor_agent(state: GmailState) -> dict:
     query = state["user_query"]
 
     try:
+        model = await get_llm()
+        llm_with_tools = model.bind_tools(tools_list)
+        ex_chain = (get_executor_prompt() | llm_with_tools).with_retry(stop_after_attempt=3)
         response = await ex_chain.ainvoke({
             "query": query,
             "plan": plan,
@@ -34,6 +35,7 @@ async def Executor_agent(state: GmailState) -> dict:
         })
         return {"messages": [response], "success": True}
     except Exception as exc:
+        logger.exception("Error in Executor_agent:")
         return {
             "error": {"type": "Executor_agent", "message": str(exc)},
             "success": False,

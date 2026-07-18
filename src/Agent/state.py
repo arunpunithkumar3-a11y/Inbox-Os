@@ -1,15 +1,16 @@
-from typing import List, Dict, Any, Optional, Literal
+from typing import Any, Dict, List, Literal, Optional
+
 from langchain_core.messages import BaseMessage
-from typing_extensions import TypedDict, Annotated
 from langgraph.graph.message import add_messages
-from src.agent.models import planner
+from typing_extensions import Annotated, TypedDict
+
+from src.agent.models import Planner
 
 
 class GmailState(TypedDict):
     user_query: str
     messages: Annotated[List[BaseMessage], add_messages]
-    plan: Optional[planner]
-    confidence_score: float
+    plan: Optional[Planner]
     initial_route: Optional[Literal["direct", "planner"]]
     summary: str
     error: Dict[str, Any]

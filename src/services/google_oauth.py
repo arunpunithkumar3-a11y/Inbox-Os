@@ -1,18 +1,22 @@
-import logging
 import asyncio
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
+import logging
+import os
+
 from fastapi import HTTPException
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
-from sqlmodel import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from src.config import configure
-from src.models.database import User, GoogleAccount, OAuthSession
+from sqlmodel import select
+
+from src.core.security import decrypt_token, encrypt_token
+from src.models.database import GoogleAccount, OAuthSession
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-CLIENT_ID = configure.CLIENT_ID
-CLIENT_SECRET = configure.CLIENT_SECRET
+CLIENT_ID = settings.CLIENT_ID
+CLIENT_SECRET = settings.CLIENT_SECRET
 
 SCOPES = [
     "openid",
@@ -23,7 +27,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.modify",
 ]
 
-REDIRECT_URI = configure.GOOGLE_REDIRECT_URI
+REDIRECT_URI = settings.GOOGLE_REDIRECT_URI
 
 
 def create_flow() -> Flow:
@@ -45,8 +49,8 @@ def create_flow() -> Flow:
 async def refresh_access_token(user, session):
     """Refresh Google OAuth credentials if expired."""
     creds = Credentials(
-        token=user.access_token,
-        refresh_token=user.refresh_token,
+        token=decrypt_token(user.access_token),
+        refresh_token=decrypt_token(user.refresh_token),
         token_uri="https://oauth2.googleapis.com/token",
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
@@ -57,8 +61,10 @@ async def refresh_access_token(user, session):
         try:
             await asyncio.to_thread(creds.refresh, Request())
 
-            user.access_token = creds.token
-            user.token_expiry = creds.expiry.replace(tzinfo=None) if creds.expiry else None
+            user.access_token = encrypt_token(creds.token)
+            user.token_expiry = (
+                creds.expiry.replace(tzinfo=None) if creds.expiry else None
+            )
 
             await session.commit()
             await session.refresh(user)
@@ -97,6 +103,7 @@ class GoogleService:
 
     async def get_gmail_user_by_id(self, id: str, session: AsyncSession):
         import uuid
+
         try:
             uuid_id = uuid.UUID(id) if isinstance(id, str) else id
         except ValueError:
@@ -110,7 +117,6 @@ class GoogleService:
         result = await session.execute(stmt)
         return result.scalars().first()
 
-    saas_verifier = None # wait, remove
     async def create_oauth_session(
         self, user_uid: str, state: str, code_verifier: str, session: AsyncSession
     ):

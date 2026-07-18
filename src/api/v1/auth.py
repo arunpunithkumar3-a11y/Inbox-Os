@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 user_serv = UserService()
 auth_router = APIRouter()
 
-REFRESH_TOKEN_EXPIRY_DAYS = 2
+REFRESH_TOKEN_EXPIRY_DAYS = 30
 
 
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)

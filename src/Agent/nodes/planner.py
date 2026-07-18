@@ -1,12 +1,10 @@
 import logging
 from src.agent.state import GmailState
 from src.agent.prompts import get_planner_prompt
-from src.agent.models import planner
-from src.agent.tools import llm, formatted_tools_desc
+from src.agent.models import Planner
+from src.agent.tools import get_llm, formatted_tools_desc
 
 logger = logging.getLogger(__name__)
-
-planner_chain = (get_planner_prompt() | llm.with_structured_output(planner, method="json_mode")).with_retry(stop_after_attempt=3)
 
 
 async def Planner_Agent(state: GmailState) -> dict:
@@ -16,13 +14,16 @@ async def Planner_Agent(state: GmailState) -> dict:
         return {}
 
     try:
+        model = await get_llm()
+        planner_chain = (get_planner_prompt() | model.with_structured_output(Planner, method="json_mode")).with_retry(stop_after_attempt=3)
         result = await planner_chain.ainvoke({
             "query": query,
             "tools": formatted_tools_desc,
-            "conf": state["confidence_score"],
+            "conf": 1.0
         })
         return {"plan": result, "success": True}
     except Exception as exc:
+        logger.exception("Error in Planner_Agent:")
         return {
             "error": {"type": "Planner_Agent", "message": str(exc)},
             "success": False,

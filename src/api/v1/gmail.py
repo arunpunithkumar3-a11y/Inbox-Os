@@ -1,13 +1,15 @@
+import asyncio
 import logging
 import uuid
-import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
-from sqlalchemy.ext.asyncio.session import AsyncSession
 from googleapiclient.discovery import build
+from sqlalchemy.ext.asyncio.session import AsyncSession
+
 from src.core.database import get_session
+from src.core.security import encrypt_token, verify__token, verify_token
 from src.services.google_oauth import GoogleService, create_flow
-from src.core.security import verify_token, verify__token
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +54,14 @@ async def callback(
     oauth_state = state_parts[0]
     redirect_uri = state_parts[1] if len(state_parts) > 1 else "/"
 
-    oauth_session = await g_serv.get_code_verifier_state(state=oauth_state, session=session)
+    oauth_session = await g_serv.get_code_verifier_state(
+        state=oauth_state, session=session
+    )
 
     if not oauth_session:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OAuth state")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OAuth state"
+        )
 
     flow = create_flow()
 
@@ -69,7 +75,7 @@ async def callback(
         logger.error("Failed to fetch Google OAuth token: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to retrieve credentials from Google. Please try again."
+            detail="Failed to retrieve credentials from Google. Please try again.",
         )
 
     credentials = flow.credentials
@@ -81,20 +87,25 @@ async def callback(
         logger.error("Failed to fetch Google user info: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to retrieve user details from Google."
+            detail="Failed to retrieve user details from Google.",
         )
 
     email = user_info.get("email")
 
     if not email:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unable to fetch email from Google")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unable to fetch email from Google",
+        )
 
     data = {
         "google_email": email,
         "user_uid": oauth_session.user_uid,
-        "access_token": credentials.token,
-        "refresh_token": credentials.refresh_token,
-        "token_expiry": credentials.expiry.replace(tzinfo=None) if credentials.expiry else None,
+        "access_token": encrypt_token(credentials.token),
+        "refresh_token": encrypt_token(credentials.refresh_token),
+        "token_expiry": credentials.expiry.replace(tzinfo=None)
+        if credentials.expiry
+        else None,
         "scope": credentials.scopes,
     }
 
@@ -107,13 +118,12 @@ async def callback(
 async def get_gmail_user(
     id: str,
     session: AsyncSession = Depends(get_session),
-    token_details=Depends(verify_token)
+    token_details=Depends(verify_token),
 ):
     logged_in_uid = token_details["user_data"]["user_id"]
     if logged_in_uid != id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"message": "Access denied"}
+            status_code=status.HTTP_403_FORBIDDEN, detail={"message": "Access denied"}
         )
 
     user = await g_serv.get_gmail_user_by_id(id, session)

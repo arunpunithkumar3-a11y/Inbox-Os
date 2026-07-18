@@ -33,20 +33,19 @@ The system has access to the following core capabilities:
 
 <output_instructions>
 Provide a clear execution plan. Your output will be parsed into a structured JSON schema:
-- `tool_to_use`: List of tools in exact execution order.
-- `reason`: Crisp explanation of the plan's logic.
-- `executing_plan_context`: A single plain-text string detailing inputs, chaining dependencies, and edge cases.
-Keep reasoning concise, direct, and focused purely on tool dependencies.
+- `tool_to_use`: Ordered list of tools that should be executed (e.g. read_emails, send_email, etc.). Choose the minimum number of tools required. Return tools in execution order. Never include unavailable tools or hallucinated tool names.
+- `execution_context`: Clear execution instructions for the executor, including search queries, parameters, email content, and any important context required to execute the tools. Put all execution details (queries, email body, search filters, parameters, etc.) inside this field.
+- `reasoning`: A brief explanation of why this execution plan was chosen (1-2 sentences max). Keep it concise. Do not describe how the executor should think. Do not generate conversational text.
 </output_instructions>
 
 <output_rules>
 Your output must match the structured JSON schema:
 {{
   "tool_to_use": ["string"],
-  "reason": "string",
-  "executing_plan_context": "string"
+  "execution_context": "string",
+  "reasoning": "string"
 }}
 You MUST strictly follow this JSON schema.
-Ensure "executing_plan_context" is a single plain-text string, NOT a list or array of objects.
+Ensure "execution_context" is a single plain-text string, NOT a list or array of objects.
 Do NOT return an empty object or any other keys.
 </output_rules>
