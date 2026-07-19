@@ -9,8 +9,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from src.core.security import decrypt_token
 from src.core.config import settings
+from src.core.security import decrypt_token
 
 
 class GmailTool:

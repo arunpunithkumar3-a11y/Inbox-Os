@@ -8,15 +8,23 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 
-from src.core.redis import token_in_blacklist
 from src.core.config import settings
+from src.core.redis import token_in_blacklist
 
 logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 ACCESS_TOKEN_EXPIRY = 3600
-key = settings.SECRET_KEY
-helper = Fernet(key.encode())
+import base64
+import hashlib
+
+def _get_fernet_key(secret: str) -> bytes:
+    raw_secret = (secret or "inbox-os-default-secret-key-32-bytes").encode("utf-8")
+    hashed = hashlib.sha256(raw_secret).digest()
+    return base64.urlsafe_b64encode(hashed)
+
+key = _get_fernet_key(settings.SECRET_KEY)
+helper = Fernet(key)
 security = HTTPBearer()
 
 
@@ -36,7 +44,6 @@ def create_access_token(
     )
 
     payload = {
-        " Saas_user_data": data,  # wait, let's keep Saas_user_data as "user_data" to match existing code
         "user_data": data,
         "jti": str(uuid.uuid4()),
         "exp": expiry,
@@ -148,8 +155,12 @@ def encrypt_token(token: str) -> str:
 def decrypt_token(encrypted_token: str) -> str:
     if not encrypted_token:
         return encrypted_token
+    # Fernet ciphertext always starts with the 'gAAAAA' base64 header.
+    # If it does not start with 'gAAAAA', it is a legacy unencrypted plaintext token.
+    if not encrypted_token.startswith("gAAAAA"):
+        return encrypted_token
     try:
         return helper.decrypt(encrypted_token.encode()).decode()
-    except Exception:
-        logger.warning("Token decryption failed; assuming plaintext.")
+    except Exception as e:
+        logger.warning(f"Token decryption failed: {e}")
         return encrypted_token

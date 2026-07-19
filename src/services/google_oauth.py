@@ -47,10 +47,22 @@ def create_flow() -> Flow:
 
 
 async def refresh_access_token(user, session):
-    """Refresh Google OAuth credentials if expired."""
+    """Refresh Google OAuth credentials if expired, and auto-encrypt legacy plaintext DB records."""
+    raw_access = decrypt_token(user.access_token)
+    raw_refresh = decrypt_token(user.refresh_token)
+
+    # Auto-migrate legacy plaintext database records to encrypted Fernet strings
+    if (user.access_token and not user.access_token.startswith("gAAAAA")) or (
+        user.refresh_token and not user.refresh_token.startswith("gAAAAA")
+    ):
+        user.access_token = encrypt_token(raw_access)
+        user.refresh_token = encrypt_token(raw_refresh)
+        await session.commit()
+        await session.refresh(user)
+
     creds = Credentials(
-        token=decrypt_token(user.access_token),
-        refresh_token=decrypt_token(user.refresh_token),
+        token=raw_access,
+        refresh_token=raw_refresh,
         token_uri="https://oauth2.googleapis.com/token",
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
