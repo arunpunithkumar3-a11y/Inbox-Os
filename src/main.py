@@ -4,8 +4,13 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-# Ensure current directory (src) is in sys.path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Ensure both repo root and src directory are in sys.path
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(SRC_DIR)
+if PARENT_DIR not in sys.path:
+    sys.path.insert(0, PARENT_DIR)
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
