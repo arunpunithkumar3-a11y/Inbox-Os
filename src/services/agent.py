@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
-from models.database import ChatState
+from src.models.database import ChatState
 
 logger = logging.getLogger(__name__)
 

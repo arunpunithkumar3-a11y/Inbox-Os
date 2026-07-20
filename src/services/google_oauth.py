@@ -8,9 +8,9 @@ from google_auth_oauthlib.flow import Flow
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
-from core.config import settings
-from core.security import decrypt_token, encrypt_token
-from models.database import GoogleAccount, OAuthSession
+from src.core.config import settings
+from src.core.security import decrypt_token, encrypt_token
+from src.models.database import GoogleAccount, OAuthSession
 
 logger = logging.getLogger(__name__)
 

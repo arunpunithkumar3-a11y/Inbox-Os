@@ -10,11 +10,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.v1.agent import Agent_router
-from api.v1.auth import auth_router
-from api.v1.gmail import google_router
-from core.config import settings
-from core.database import close_db
+from src.api.v1.agent import Agent_router
+from src.api.v1.auth import auth_router
+from src.api.v1.gmail import google_router
+from src.core.config import settings
+from src.core.database import close_db
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
 
     yield
-    from core.redis import redis_client
+    from src.core.redis import redis_client
 
     await redis_client.close()
     await close_db()

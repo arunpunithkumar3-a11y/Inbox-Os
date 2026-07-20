@@ -8,8 +8,8 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 
-from core.config import settings
-from core.redis import token_in_blacklist
+from src.core.config import settings
+from src.core.redis import token_in_blacklist
 
 logger = logging.getLogger(__name__)
 

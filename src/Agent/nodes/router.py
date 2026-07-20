@@ -1,8 +1,8 @@
 import logging
-from agent.state import GmailState
-from agent.prompts.prompt_loader import get_router_prompt
-from agent.models import router as router_model
-from agent.tools import get_llm
+from src.agent.state import GmailState
+from src.agent.prompts.prompt_loader import get_router_prompt
+from src.agent.models import router as router_model
+from src.agent.tools import get_llm
 
 logger = logging.getLogger(__name__)
 

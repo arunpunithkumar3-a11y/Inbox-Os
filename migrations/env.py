@@ -6,9 +6,9 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from models.database import ChatState
+from src.models.database import ChatState
 from sqlmodel import SQLModel
-from core.config import settings
+from src.core.config import settings
 
 database_url = settings.DATABASE_URL
 

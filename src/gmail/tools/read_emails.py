@@ -1,6 +1,6 @@
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
-from gmail.service import get_gmail_tool
+from src.gmail.service import get_gmail_tool
 
 
 @tool

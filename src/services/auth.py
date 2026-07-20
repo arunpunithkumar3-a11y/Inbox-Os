@@ -3,9 +3,9 @@ import logging
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
-from core.security import create_hash_password
-from models.auth import UserSignup
-from models.database import User
+from src.core.security import create_hash_password
+from src.models.auth import UserSignup
+from src.models.database import User
 
 logger = logging.getLogger(__name__)
 

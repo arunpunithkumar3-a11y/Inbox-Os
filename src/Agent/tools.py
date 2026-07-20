@@ -4,10 +4,10 @@ from fastapi import Depends
 from langchain_openai import ChatOpenAI
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from core.config import settings
-from core.database import get_session
-from gmail.tools.tools_list import tools_list
-from services.agent import AgentService
+from src.core.config import settings
+from src.core.database import get_session
+from src.gmail.tools.tools_list import tools_list
+from src.services.agent import AgentService
 
 agent_service = AgentService()
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ async def build_agent_instance(
     thread_id: str,
     query: str,
 ):
-    from agent.agent import GmailAgent
+    from src.agent.agent import GmailAgent
 
     agent = GmailAgent(query=query, thread_id=thread_id, id=user_id)
     agent_data = await agent.build_agent()

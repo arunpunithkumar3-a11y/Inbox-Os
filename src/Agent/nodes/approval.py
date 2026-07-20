@@ -3,7 +3,7 @@ import logging
 from langchain_core.messages import ToolMessage
 from langgraph.types import interrupt
 
-from agent.state import GmailState
+from src.agent.state import GmailState
 
 logger = logging.getLogger(__name__)
 

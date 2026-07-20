@@ -1,14 +1,14 @@
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from agent.nodes.approval import Approval_Agent, route_after_approval
-from agent.nodes.direct import direct
-from agent.nodes.executor import Executor_agent
-from agent.nodes.memory import memory
-from agent.nodes.planner import Planner_Agent
-from agent.nodes.router import router, decide
-from agent.state import GmailState
-from agent.tools import tools_list
+from src.agent.nodes.approval import Approval_Agent, route_after_approval
+from src.agent.nodes.direct import direct
+from src.agent.nodes.executor import Executor_agent
+from src.agent.nodes.memory import memory
+from src.agent.nodes.planner import Planner_Agent
+from src.agent.nodes.router import router, decide
+from src.agent.state import GmailState
+from src.agent.tools import tools_list
 
 
 async def agent_graph(checkpointer, state_schema=GmailState):

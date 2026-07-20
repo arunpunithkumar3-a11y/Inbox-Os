@@ -7,9 +7,9 @@ from fastapi.responses import RedirectResponse
 from googleapiclient.discovery import build
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from core.database import get_session
-from core.security import encrypt_token, verify__token, verify_token
-from services.google_oauth import GoogleService, create_flow
+from src.core.database import get_session
+from src.core.security import encrypt_token, verify__token, verify_token
+from src.services.google_oauth import GoogleService, create_flow
 
 logger = logging.getLogger(__name__)
 

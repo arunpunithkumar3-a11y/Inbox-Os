@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.store.postgres import AsyncPostgresStore
-from core.config import settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ async_session_factory = sessionmaker(
 
 async def init_db():
     from sqlmodel import SQLModel
-    from models.database import User, GoogleAccount, OAuthSession, ChatState
+    from src.models.database import User, GoogleAccount, OAuthSession, ChatState
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     logger.info("Database tables initialised.")
