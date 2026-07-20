@@ -24,10 +24,7 @@ class GmailAgent:
                 "user_uid": self.id,
             }
         }
-        return {
-            "graph": graph,
-            "config_material": run_config
-        }
+        return {"graph": graph, "config_material": run_config}
 
     async def get_chats(self):
         checkpointer = await get_checkpointer()

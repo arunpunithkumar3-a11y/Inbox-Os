@@ -157,8 +157,7 @@ def encrypt_token(token: str) -> str:
 def decrypt_token(encrypted_token: str) -> str:
     if not encrypted_token:
         return encrypted_token
-    # Fernet ciphertext always starts with the 'gAAAAA' base64 header.
-    # If it does not start with 'gAAAAA', it is a legacy unencrypted plaintext token.
+
     if not encrypted_token.startswith("gAAAAA"):
         return encrypted_token
     try:
