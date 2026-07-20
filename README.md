@@ -2,247 +2,420 @@
 
 <div align="center">
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![LangGraph](https://img.shields.io/badge/LangGraph-6366F1?style=for-the-badge&logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraph)
-[![SQLModel](https://img.shields.io/badge/SQLModel-4F46E5?style=for-the-badge&logo=pydantic&logoColor=white)](https://sqlmodel.tiangolo.com)
-[![Upstash Redis](https://img.shields.io/badge/Upstash_Redis-FF4438?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
-[![Gmail API](https://img.shields.io/badge/Gmail_API-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](https://developers.google.com/gmail/api)
+[![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Stateful_Agent-6366F1?style=for-the-badge&logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraph)
+[![SQLModel](https://img.shields.io/badge/SQLModel-Async-4F46E5?style=for-the-badge&logo=pydantic&logoColor=white)](https://sqlmodel.tiangolo.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-AsyncPG-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Upstash Redis](https://img.shields.io/badge/Upstash_Redis-REST_JWT-FF4438?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com)
+[![Gmail API](https://img.shields.io/badge/Gmail_API-OAuth2.0-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](https://developers.google.com/gmail/api)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
+[![License](https://img.shields.io/badge/License-MIT-green.style=for-the-badge)](LICENSE)
 
-**A production-grade, stateful AI Agent platform built using LangGraph, FastAPI, and robust Human-in-the-Loop workflows to transform standard email communication into intelligent, autonomous task orchestration.**
+**Inbox OS is a production-grade, stateful AI Mailbox Operating System that transforms email management into an autonomous, safe, and intelligent task orchestration engine using LangGraph, FastAPI, PostgreSQL, and Human-in-the-Loop controls.**
 
-[Explore Docs](http://localhost:8000/docs) · [Report Bug](https://github.com/PunithKumar-A/inbox-os/issues) · [Request Feature](https://github.com/PunithKumar-A/inbox-os/issues)
+[Explore API Docs](http://localhost:8000/docs) · [Report Bug](https://github.com/arunpunithkumar3-a11y/Inbox-Os/issues) · [Request Feature](https://github.com/arunpunithkumar3-a11y/Inbox-Os/issues)
 
 </div>
 
 ---
 
-## 📖 1. Project Overview
+## 📋 Table of Contents
 
-**Inbox OS** is not a simple chatbot wrapper; it is an intelligent, production-oriented AI operating system designed to securely ingest, analyze, compose, and organize email communication.
-
-By modeling mailbox interactions as an **Agentic State Graph**, Inbox OS handles long-running, multi-step actions (such as summarizing invoice chains, cross-referencing attachments, and queuing security blacklists) with high reliability. The platform integrates industrial AI design patterns, combining stateful Short-Term & Long-Term Memory, multi-layered output validators, secure Google OAuth authentication, and interactive Human-in-the-Loop gates to guarantee that no email is sent or modified without explicit user authorization.
-
----
-
-## 🎯 2. Why Inbox OS?
-
-Most current "email assistants" are basic wrappers around Large Language Model (LLM) APIs. They ingest a prompt, call an API once, and return a text response. This approach fails in real-world email management because:
-
-- **No Stateful Iteration**: They cannot plan complex, multi-stage workflows (e.g. search thread $\rightarrow$ fetch attachment $\rightarrow$ draft response $\rightarrow$ ask user $\rightarrow$ archive original).
-- **Unreliable Tool Calling**: LLMs frequently hallucinate parameters or invoke tools out of order.
-- **Safety Violations**: Directly executing actions (like sending emails or deleting folders) without a secure approval gate introduces high operational risk.
-- **Lack of Contextual Memory**: They lose track of historical decisions, user preferences, and temporal changes across conversation chains.
-
-**Inbox OS** addresses these limits by separating reasoning, planning, execution, and validation into a structured, deterministic State Graph. It scales dynamically, scales confidence scores automatically, and ensures **complete safety** via an integrated Human-Approval gateway.
+- [1. Executive Summary & Core Value](#-1-executive-summary--core-value)
+- [2. System Architecture & State Machine](#-2-system-architecture--state-machine)
+- [3. Deep Dive: Agentic Graph Nodes](#-3-deep-dive-agentic-graph-nodes)
+- [4. Gmail Tool Suite & Capabilities](#-4-gmail-tool-suite--capabilities)
+- [5. Human-in-the-Loop Interrupt & Approval Engine](#-5-human-in-the-loop-interrupt--approval-engine)
+- [6. Dual-Memory System (Checkpointer & Store)](#-6-dual-memory-system-checkpointer--store)
+- [7. Security Architecture & Encryption](#-7-security-architecture--encryption)
+- [8. Repository Directory Structure](#-8-repository-directory-structure)
+- [9. Complete API Endpoint Specification](#-9-complete-api-endpoint-specification)
+- [10. Environment Variables Configuration](#-10-environment-variables-configuration)
+- [11. Local Development Setup](#-11-local-development-setup)
+- [12. Database Migrations (Alembic)](#-12-database-migrations-alembic)
+- [13. Production Deployment (Render & Docker)](#-13-production-deployment-render--docker)
+- [14. License](#-14-license)
 
 ---
 
-## ⚡ 3. Key Features
+## 🧠 1. Executive Summary & Core Value
 
-- **Advanced Planner-Executor Architecture**: Decouples strategic planning from execution nodes, allowing the agent to evaluate multiple actions before calling external tools.
-- **Robust Human-in-the-Loop Approvals**: A secure execution barrier that halts the graph on critical actions (e.g. `send_email`, `delete_thread`) and waits for user confirmation before proceeding.
-- **Dual-Layer Memory Management**:
-  - _Short-Term Memory_: Maintained within the LangGraph checkpoint layer for context preservation during an active session thread.
-  - _Long-Term Memory_: Persisted in PostgreSQL to retain user configurations, styles, and instructions across distinct conversation histories.
-- **Upstash Redis JWT Blacklisting**: Fast, serverless token blacklisting using the official `upstash-redis` client to revoke active user sessions instantly.
-- **Real-time Streaming Responses**: Chunk-by-chunk token streaming for conversational UX and instantaneous tool logs feedback.
-- **Validation Layer**: Rigorous Pydantic structure checks on LLM outputs to prevent tool call hallucinations and format anomalies.
-- **Google OAuth & Gmail API**: Secure, token-encrypted Gmail API OAuth flow storing access keys safely in PostgreSQL.
-- **Model Context Protocol (MCP) Tools**: Dynamically integrates with external MCP servers to execute complex system tasks beyond standard Gmail APIs.
+Conventional email assistants rely on single-shot LLM prompts or naive function calling wrappers. In production environments, this simple architecture fails due to:
+1. **Lack of Multi-Step Reasoning**: Inability to execute complex workflows like searching threads $\rightarrow$ fetching context $\rightarrow$ drafting responses $\rightarrow$ requesting authorization $\rightarrow$ organizing labels.
+2. **Operational Safety Risks**: Executing destructive actions (`send_email`, `trash_email`, `remove_label`) without mandatory human validation introduces unacceptable corporate risk.
+3. **Loss of Session State**: Forgetting thread state or historical preferences across distinct API invocations.
+
+**Inbox OS** addresses these structural flaws by implementing a **LangGraph State Graph Engine** backed by **PostgreSQL Checkpointing**, **AES-Fernet encrypted OAuth credentials**, and a strict **Human-in-the-Loop (HITL) Approval Gate**.
 
 ---
 
-## 🛠️ 4. Tech Stack
+## 📐 2. System Architecture & State Machine
 
-- **Backend Engine**: [FastAPI](https://fastapi.tiangolo.com/) (Asynchronous, High-Performance ASGI Framework)
-- **Agent Framework**: [LangGraph](https://github.com/langchain-ai/langgraph) & [LangChain](https://github.com/langchain-ai/langchain) (Stateful multi-agent orchestrator)
-- **Databases**: [PostgreSQL](https://www.postgresql.org/) (State storage & checks) & [Upstash Redis](https://upstash.com/) (Session blacklisting)
-- **ORM & Validation**: [SQLModel](https://sqlmodel.tiangolo.com/) (Active-record style Pydantic + SQLAlchemy mapper)
-- **Migrations**: [Alembic](https://alembic.sqlalchemy.org/) (Database migrations tool)
-- **APIs & Protocols**: Google Gmail API, OAuth2, Model Context Protocol (MCP)
-
----
-
-## 📐 5. System Design & Workflow
+The core intelligence of Inbox OS is modeled as a cyclic state graph in `agent/graph.py`. Requests enter the pipeline, pass through memory and routing, conditionally execute planning, and trigger Human-in-the-Loop interruptions whenever tool execution is requested.
 
 ```mermaid
-graph TD
-    START([START]) --> MemoryNode[Memory Node]
-    MemoryNode --> RouterNode[Router Node]
+flowchart TD
+    START([🚀 START: User Query / Request]) --> MemoryNode["🧠 Memory Node\n(Fetches Long-Term Store & State)"]
+    MemoryNode --> RouterNode["🔀 Router Node\n(Evaluates Intent: Direct vs Planner)"]
 
-    RouterNode -->|Direct Response| DirectPath[Direct Response Node]
-    DirectPath --> END([END])
+    RouterNode -->|Route = 'direct'| DirectNode["💬 Direct Response Node\n(System Prompt Chat Completion)"]
+    DirectNode --> END1([🔚 END: Stream Response])
 
-    RouterNode -->|Requires Planning| PlannerAgent[Planner Agent]
-    PlannerAgent --> ExecutorAgent[Executor Agent]
+    RouterNode -->|Route = 'planner'| PlannerNode["📋 Planner Agent Node\n(Drafts Reasoning & Steps)"]
+    PlannerNode --> ExecutorNode["⚙️ Executor Agent Node\n(Generates Tool Calls or Final Answer)"]
 
-    ExecutorAgent --> NeedsTool{Needs Tool?}
+    ExecutorNode --> ToolsCondition{"❓ Needs Tool Execution?"}
 
-    NeedsTool -->|No| ValidatorAgent[Validator Agent]
-    ValidatorAgent --> END
+    ToolsCondition -->|No Tools Needed| END2([🔚 END: Task Completed])
 
-    NeedsTool -->|Yes| ApprovalGate[Approval Gate]
+    ToolsCondition -->|Tools Requested| ApprovalGate["🛡️ Approval Gate / Interrupt\n(Halts Graph State & Awaits User Input)"]
 
-    ApprovalGate -->|Approved| ToolNode[Tool Node]
-    ToolNode --> ExecutorAgent2[Executor Agent]
-    ExecutorAgent2 --> ValidatorAgent2[Validator Agent]
-    ValidatorAgent2 --> END
+    ApprovalGate -->|User Action| RouteAfterApproval{"❓ User Decision"}
 
-    ApprovalGate -->|Retry| ExecutorAgent
+    RouteAfterApproval -->|Approve| ToolNode["🔧 Tool Node\n(Executes Authorized Gmail Tool)"]
+    ToolNode --> ExecutorNode
+
+    RouteAfterApproval -->|Reject / Feedback| ExecutorNode
 ```
 
-### Core Architecture Layers
+---
 
-1. **Memory Layer**: Combines Short-Term State (LangGraph Postgres Checkpointers) and Long-Term profiles (SQLModel) to load historical user behavior, settings, and instructions.
-2. **Routing Layer**: Parses incoming requests to determine if they can be answered directly (e.g. general questions) or require multi-tool coordination.
-3. **Planning Layer**: Instructs the Planner Agent to map out a sequence of actions, parameters, and targets needed to satisfy the query.
-4. **Execution Layer**: Translates the strategic plan into API commands, executing Google Gmail or MCP operations.
-5. **Human Approval Layer**: Blocks the state graph automatically when destructive actions are queued, waiting for a secure external callback before executing the payload.
-6. **Tool Layer**: Executes authorized actions using secure access tokens refreshed on demand.
-7. **Validation Layer**: Runs output checkers to verify parameter schemas and context relevance before saving the thread.
+## 🧩 3. Deep Dive: Agentic Graph Nodes
+
+Every node in the state graph (`agent/nodes/`) plays a specialized role in the decision pipeline:
+
+1. **`memory` Node (`agent/nodes/memory.py`)**:
+   - Reads existing messages and thread states.
+   - Leverages `AsyncPostgresStore` and LLM structured extraction (`extract_data` model) to aggregate actionable items, summaries, and user context.
+
+2. **`router` Node (`agent/nodes/router.py`)**:
+   - Evaluates user intent using structured Pydantic output (`router` model).
+   - Classifies query into `"direct"` (informational/conversational responses) or `"planner"` (multi-step email operations).
+
+3. **`direct` Node (`agent/nodes/direct.py`)**:
+   - Generates conversational responses directly using system prompt templates (`agent/prompts/system.md`) without invoking external API tools.
+
+4. **`planner` Node (`agent/nodes/planner.py`)**:
+   - Formulates a structured step-by-step strategy (`Planner` model) using the prompt template `agent/prompts/planner.md`.
+
+5. **`ex` Executor Node (`agent/nodes/executor.py`)**:
+   - Translates the strategic plan into specific Gmail tool calls or synthesizes final responses using bound tools (`agent/tools.py`).
+
+6. **`approval_gate` Node (`agent/nodes/approval.py`)**:
+   - Serves as the Human-in-the-Loop barrier. Uses LangGraph's `interrupt()` function to pause state execution whenever tool calls are emitted.
+
+7. **`tool` Node (`agent/nodes/` via `langgraph.prebuilt.ToolNode`)**:
+   - Executes authorized Gmail operations using active OAuth tokens and passes results back to the `Executor` node.
 
 ---
 
-## 🧩 6. Workflow Nodes Explained
+## 🛠️ 4. Gmail Tool Suite & Capabilities
 
-- **`Memory Node`**: Reads the active thread states and fetches the user’s long-term profile data from PostgreSQL. It loads custom styles, preferences, and system prompts to configure the agent context.
-- **`Router Node`**: Analyzes the token parameters to classify user intent. If the query requires external data or action, it routes the state to the **Planner Agent**; otherwise, it bypasses planning to execute a **Direct Response**.
-- **`Direct Response Node`**: Handles informational requests (e.g., system instructions or basic questions) that do not require external Gmail API or tool orchestrations, immediately returning the response to the user.
-- **`Planner Agent`**: Drafts a structured plan outlining the steps, parameters, and dependencies required to perform the task.
-- **`Executor Agent`**: Interprets the drafted plan and prepares specific tool arguments (e.g. drafting search strings or structuring compose payloads).
-- **`Approval Agent / Gate`**: Evaluates the queued operations. If the operation is destructive (e.g. `send_email` or `trash_thread`), it halts graph execution, saves the checkpointer state, and awaits user authorization.
-- **`Tool Node`**: Dispatches the action to Gmail, MCP, or database tools upon receiving user approval.
-- **`Validator Agent`**: Evaluates the raw tool output or draft response against system instructions and formatting boundaries, repairing any discrepancies before resolving the thread.
+Inbox OS equips the agent with 11 custom LangChain tools (`gmail/tools/`) wrapping the Google Gmail API v1:
+
+| Tool Name | Module File | Description | Required Parameters |
+| :--- | :--- | :--- | :--- |
+| **`read_emails`** | `read_emails.py` | Searches and retrieves email messages matching query filters. | `query` (str), `max_results` (int) |
+| **`send_email`** | `send_email.py` | Sends new email messages with optional CC, BCC, and attachments. | `to` (str), `subject` (str), `body` (str) |
+| **`reply_to_email`** | `reply_to_email.py` | Sends a reply message within an existing thread. | `thread_id` (str), `body` (str) |
+| **`create_draft`** | `create_draft.py` | Creates a new draft message in the user's mailbox without sending. | `to` (str), `subject` (str), `body` (str) |
+| **`mark_as_read`** | `mark_as_read.py` | Removes UNREAD label from specified email message. | `msg_id` (str) |
+| **`archive_email`** | `archive_email.py` | Removes INBOX label from specified email message. | `msg_id` (str) |
+| **`trash_email`** | `trash_email.py` | Moves an email message to the Trash bin. | `msg_id` (str) |
+| **`add_label`** | `add_label.py` | Applies a user or system label to a message. | `msg_id` (str), `label_id` (str) |
+| **`remove_label`** | `remove_label.py` | Strips a specified label from an email message. | `msg_id` (str), `label_id` (str) |
+| **`list_labels`** | `list_labels.py` | Lists all available system and user labels in the mailbox. | None |
+| **`get_email_stats`** | `get_email_stats.py` | Computes statistical summaries of unread and total messages. | None |
 
 ---
 
-## ⚙️ 7. Environment Variables
+## 🛡️ 5. Human-in-the-Loop Interrupt & Approval Engine
 
-Create a `.env` file in the root of the project. A template is provided in [`.env.example`](file:///c:/Users/DVS/OneDrive/Desktop/gmail_backend/.env.example):
+Security is enforced at the graph level. Whenever the agent determines that a tool must be called, execution is interrupted:
+
+1. **Graph Interruption**: `Approval_Agent` invokes `interrupt({"tool_calls": ..., "message": ...})`.
+2. **State Persistence**: The current state is committed to PostgreSQL via `AsyncPostgresSaver`.
+3. **Client Notification**: The API emits an SSE event indicating an interruption and returns the `thread_id`.
+4. **User Action**: The client sends a approval request to `POST /ai/agent/resume` with `decision: "approve"` or `decision: "reject"`.
+5. **Graph Resume**: The graph resumes using `Command(resume=...)` and either executes the tool payload or redirects back to the planner with user feedback.
+
+---
+
+## 💾 6. Dual-Memory System (Checkpointer & Store)
+
+Inbox OS uses a dual-persistence architecture managed in `core/database.py`:
+
+- **Short-Term State Checkpoints (`AsyncPostgresSaver`)**:
+  - Automatically captures state snapshots after every node execution.
+  - Allows seamless thread resumption across restarts and network disconnections.
+- **Long-Term Memory Store (`AsyncPostgresStore`)**:
+  - Maintains persistent memories, user preferences, and extraction facts across independent chat sessions.
+- **Relational Relational Engine (`SQLModel` + PostgreSQL AsyncPG)**:
+  - Manages `User` accounts, encrypted `GoogleAccount` tokens, `OAuthSession` state trackers, and `ChatState` records.
+
+---
+
+## 🔐 7. Security Architecture & Encryption
+
+1. **Password Security**:
+   - Passwords are hashed using the **Argon2** algorithm via `passlib.context.CryptContext`.
+2. **Token Encryption**:
+   - OAuth2 access and refresh tokens are encrypted at rest in PostgreSQL using **AES-Fernet** symmetric encryption (`cryptography.fernet.Fernet`).
+   - Encryption keys are derived using SHA-256 key stretching from `SECRET_KEY`.
+3. **Session Revocation & Blacklisting**:
+   - Active JWT tokens are checked against **Upstash Redis** on every API request.
+   - Calling `/api/auth/logout` writes the JWT ID (`jti`) to Redis with a TTL matching token expiration.
+4. **OAuth State Verification**:
+   - Google OAuth authentication flows track dynamic UUID state tokens in the `OAuthSession` table to prevent CSRF attacks.
+
+---
+
+## 📁 8. Repository Directory Structure
+
+```
+Inbox-Os/
+├── Dockerfile                  # Production container manifest (Python 3.13-slim)
+├── README.md                   # Comprehensive project documentation
+├── alembic.ini                 # Database migration configuration
+├── requirements.txt            # Python dependency specifications
+├── .env                        # Local environment variables file
+├── .env.example                # Template environment variables
+├── migrations/                 # Alembic migration scripts
+│   ├── env.py                  # Alembic environment configuration
+│   └── versions/               # Individual database schema migration files
+└── src/                        # Source codebase
+    ├── main.py                 # FastAPI application initialization & middleware
+    ├── agent/                  # LangGraph agent orchestration
+    │   ├── agent.py            # GmailAgent wrapper class
+    │   ├── graph.py            # LangGraph state graph machine
+    │   ├── models.py           # Pydantic structured output models
+    │   ├── state.py            # GmailState TypedDict schema
+    │   ├── tools.py            # LLM instantiation & agent builders
+    │   ├── nodes/              # State graph execution nodes
+    │   │   ├── approval.py     # Interrupt & Human-in-the-Loop gate
+    │   │   ├── direct.py       # Conversational response node
+    │   │   ├── executor.py     # Plan execution & tool calling node
+    │   │   ├── memory.py       # Short & long-term memory node
+    │   │   ├── planner.py      # Strategic task planning node
+    │   │   └── router.py       # Intent routing node
+    │   └── prompts/            # System & agent prompt templates
+    │       ├── prompt_loader.py# Dynamic markdown prompt loader
+    │       ├── executor.md     # Executor prompt template
+    │       ├── extractor.md    # Memory extractor prompt template
+    │       ├── planner.md      # Planner prompt template
+    │       ├── router.md       # Router prompt template
+    │       └── system.md       # Direct system prompt template
+    ├── api/                    # API Routing Layer
+    │   └── v1/                 # API Version 1 endpoints
+    │       ├── agent.py        # /ai/agent endpoints (stream & resume)
+    │       ├── auth.py         # /api/auth endpoints (signup, login, logout)
+    │       └── gmail.py        # /gmail endpoints (OAuth login, callback, verify)
+    ├── core/                   # Infrastructure Core
+    │   ├── config.py           # Pydantic Settings configuration manager
+    │   ├── database.py         # SQLAlchemy Async Engine, psycopg pool, LangGraph checkpointer
+    │   ├── redis.py            # Upstash Redis REST client & JWT blacklisting
+    │   └── security.py         # Password hashing, Fernet encryption, JWT validation
+    ├── gmail/                  # Gmail API Integration Layer
+    │   ├── service.py          # Google API client wrapper (GmailTool)
+    │   └── tools/              # LangChain @tool wrappers
+    │       ├── add_label.py
+    │       ├── archive_email.py
+    │       ├── create_draft.py
+    │       ├── get_email_stats.py
+    │       ├── list_labels.py
+    │       ├── mark_as_read.py
+    │       ├── read_emails.py
+    │       ├── remove_label.py
+    │       ├── reply_to_email.py
+    │       ├── send_email.py
+    │       ├── trash_email.py
+    │       └── tools_list.py   # Tool registry exporter
+    ├── models/                 # Relational & Request Data Models
+    │   ├── agent.py            # Request/Response schemas for Agent API
+    │   ├── auth.py             # Auth Pydantic request models
+    │   └── database.py         # SQLModel Database Tables (User, GoogleAccount, etc.)
+    └── services/               # Business Logic Services Layer
+        ├── agent.py            # ChatState thread persistence service
+        ├── auth.py             # User lookup & authentication service
+        └── google_oauth.py     # OAuth token exchange & flow manager
+```
+
+---
+
+## 📡 9. Complete API Endpoint Specification
+
+### Authentication Endpoints (`/api/auth`)
+
+- **`POST /api/auth/signup`**
+  - **Body**: `{"email": "user@example.com", "password": "securepassword", "full_name": "John Doe"}`
+  - **Response**: `201 Created` with created user details.
+- **`POST /api/auth/login`**
+  - **Body**: `{"email": "user@example.com", "password": "securepassword"}`
+  - **Response**: `200 OK` with JWT `access_token`, sets HTTP-only `refresh_token` cookie.
+- **`POST /api/auth/refresh`**
+  - **Headers/Cookies**: `refresh_token` cookie or Bearer token.
+  - **Response**: `200 OK` with new `access_token`.
+- **`POST /api/auth/logout`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Response**: `200 OK`, adds `jti` to Upstash Redis blacklist.
+
+### Google OAuth Endpoints (`/gmail`)
+
+- **`GET /gmail/g/login`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Response**: `200 OK` returning Google OAuth authorization URL.
+- **`GET /gmail/g/callback?code=...&state=...`**
+  - Handles Google OAuth redirect, exchanges authorization code for tokens, encrypts tokens via Fernet, and saves credentials.
+- **`GET /gmail/g/verify`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Response**: Returns connection status (`connected: true/false`).
+- **`GET /gmail/g/details`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Response**: Returns connected Gmail account email address and configuration details.
+- **`POST /gmail/g/logout`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Response**: Removes stored Google OAuth credentials from database.
+
+### AI Agent Endpoints (`/ai`)
+
+- **`POST /ai/agent`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Body**: `{"user_query": "Find unread invoice emails and summarize them", "thread_id": "optional-uuid"}`
+  - **Response**: Server-Sent Events (`text/event-stream`) streaming response chunks, tool calls, or interruption signals. Exposes header `x-thread-id`.
+- **`POST /ai/agent/resume`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Body**: `{"thread_id": "target-uuid", "decision": "approve"}` (or `"reject"`)
+  - **Response**: `text/event-stream` resuming execution after human approval.
+- **`GET /ai/agent/threads`**
+  - **Headers**: `Authorization: Bearer <access_token>`
+  - **Response**: List of active conversation thread IDs and chat titles for the user.
+
+---
+
+## ⚙️ 10. Environment Variables Configuration
+
+Create a `.env` file in the project root based on the provided template:
 
 ```ini
-# ── DATABASE CONFIGURATION
-DATABASE_URL=postgresql+asyncpg://<username>:<password>@<host>:<port>/<database>
+# ── DATABASE CONFIGURATION (Async PostgreSQL)
+DATABASE_URL=postgresql+asyncpg://<username>:<password>@<host>:<port>/<database_name>
 
-# ── UPSTASH REDIS REST (JWT Blacklist)
+# ── UPSTASH REDIS REST (JWT Blacklisting)
 UPSTASH_REDIS_REST_URL=https://<your-instance>.upstash.io
 UPSTASH_REDIS_REST_TOKEN=<your-rest-token>
 
-# ── JWT SECURITY
-JWT_SECRET=<secure-random-hex>
+# ── JWT SECURITY & ENCRYPTION
+JWT_SECRET=<32-byte-hex-secret-key>
 JWT_ALGORITHM=HS256
+SECRET_KEY=<fernet-master-secret-key>
 
-# ── GOOGLE AUTH (Gmail API)
-CLIENT_ID=<google-oauth-client-id>
-CLIENT_SECRET=<google-oauth-client-secret>
+# ── GOOGLE OAUTH 2.0 (Gmail API)
+CLIENT_ID=<google-client-id>.apps.googleusercontent.com
+CLIENT_SECRET=<google-client-secret>
 GOOGLE_REDIRECT_URI=http://localhost:8000/gmail/g/callback
 
-# ── AI MODELS (OpenRouter)
-OPEN_AI_MODEL=openai/gpt-oss-120b:free
-BASE_URL=https://openrouter.ai/api/v1
-OPENROUTER_API_KEY=<your-api-key>
+# ── LLM ENDPOINT CONFIGURATION
+GROQ_API_KEY=<your-api-key>
+GROQ_AI_MODEL=openai/gpt-oss-120b
+MODEL_BASE_URL=https://integrate.api.nvidia.com/v1
 
-# ── NETWORK
-ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
-MCP_URL=https://<your-mcp-server>.onrender.com/mcp
+# ── CORS & SECURITY ORIGINS
+ALLOWED_ORIGINS=http://localhost:8000,http://localhost:5173,http://localhost:3000
 ```
 
 ---
 
-## 🚀 8. Getting Started
+## 🚀 11. Local Development Setup
 
-### Prerequisites
+### 1. Prerequisites
 
-- Python 3.10+
-- PostgreSQL Instance
-- Upstash Redis Account
+- Python 3.10 or higher installed.
+- PostgreSQL server running locally or via cloud provider (e.g. Neon, Render PostgreSQL).
+- Upstash Redis database created.
 
-### Installation
+### 2. Virtual Environment Setup
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/arunpunithkumar3-a11y/Inbox-Os.git
-   cd Inbox-Os
-   ```
-2. **Create and Activate a Virtual Environment**:
-   ```bash
-   python -m venv .venv
-   # Windows
-   .venv\Scripts\activate
-   # macOS/Linux
-   source .venv/bin/activate
-   ```
-3. **Install Dependencies**:
+```bash
+# Clone repository
+git clone https://github.com/arunpunithkumar3-a11y/Inbox-Os.git
+cd Inbox-Os
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# On Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+# On Linux/macOS:
+source .venv/bin/activate
+
+# Upgrade pip and install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 3. Initialize Database Tables
+
+```bash
+python -c "import asyncio; from core.database import init_db; asyncio.run(init_db())"
+```
+
+### 4. Start the Application
+
+```bash
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Access automatic interactive Swagger documentation at **`http://localhost:8000/docs`**.
+
+---
+
+## 🔄 12. Database Migrations (Alembic)
+
+To update database models and track schema changes:
+
+```bash
+# Generate a new migration script
+alembic revision --autogenerate -m "describe_changes"
+
+# Apply migrations to database
+alembic upgrade head
+```
+
+---
+
+## ☁️ 13. Production Deployment (Render & Docker)
+
+### Docker Deployment
+
+Inbox OS includes a containerized `Dockerfile`:
+
+```bash
+# Build Docker image
+docker build -t inbox-os:latest .
+
+# Run Docker container
+docker run -d -p 8000:8000 --env-file .env inbox-os:latest
+```
+
+### Render Web Service Deployment
+
+1. Create a **New Web Service** on [Render](https://render.com).
+2. Connect your GitHub repository (`Inbox-Os`).
+3. Set **Runtime** to `Python 3`.
+4. Set **Build Command**:
    ```bash
    pip install -r requirements.txt
    ```
-4. **Run Database Initialization**:
+5. Set **Start Command**:
    ```bash
-   python -c "import asyncio; from src.db.main import init_db; asyncio.run(init_db())"
+   uvicorn src.main:app --host 0.0.0.0 --port $PORT
    ```
-5. **Start the API Server**:
-   ```bash
-   uvicorn src.db.main:app --port 8000 --reload
-   ```
-   *Once running, you can access the automatic interactive API documentation at **`http://localhost:8000/docs`**.*
+6. Copy all variables from `.env` into Render's **Environment Variables** settings tab.
 
 ---
 
-## ☁️ 10. Deployment Guide
-
-### Database & Redis Configuration
-
-1. Provision a managed PostgreSQL instance (e.g. Render, AWS RDS, or Neon).
-2. Provision an Upstash Redis database and retrieve the REST URL and Token credentials.
-
-### Deploying to Render
-
-1. Create a new **Web Service** on Render pointing to your GitHub repository.
-2. Set the Environment to **Python 3**.
-3. Configure your Build Command:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure your Start Command:
-   ```bash
-   uvicorn src.db.main:app --host 0.0.0.0 --port $PORT
-   ```
-5. Add all keys from `.env.example` to Render's **Environment Variables** panel.
-
----
-
-## 🗺️ 11. Future Roadmap
-
-- [ ] **Local LLM Execution**: Integration of fully local open-source models using Ollama / vLLM.
-- [ ] **Multi-Agent Teams**: Decouple task execution to sub-specialized agent clusters (e.g. Calendar Agent, Task List Agent).
-- [ ] **Advanced Attachment Vectorization**: RAG-based search indexing inside PDF/CSV attachments.
-- [ ] **Self-Correcting Tool Loops**: Automatically self-heal failed Gmail API calls using feedback execution nodes.
-
----
-
-## 🤝 12. Contributing & License
-
-Contributions are welcome! Please submit a PR or open an issue to discuss design enhancements.
+## 📜 14. License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## 👨‍💻 13. Built By
-
-<div align="left">
-
-**Punith Kumar A**  
-_Founder & CEO, Broken Code_
-
-I am a first-year BCA student highly passionate about Artificial Intelligence, Machine Learning, Agentic AI, and building production-grade software systems.
-
-**Currently focused on:**
-
-- 🧠 AI/ML Engineering & Generative AI
-- 🤖 Complex Agentic Orchestration Systems (LangGraph/LangChain)
-- ⚙️ High-Performance Backend Architectures
-- 🚀 Building Disruptive Tech Startups
-
-</div>
