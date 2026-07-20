@@ -1,39 +1,59 @@
+# Git & VCS
+.git/
+.gitignore
+.gitattributes
 
+# Environment & Secrets
 .env
 .env.*
+*.env
 
-
+# Python Cache & Bytecode
 __pycache__/
 *.py[cod]
-*.pyo
-*.egg-info/
-dist/
-build/
-*.egg
+*$py.class
+*.so
+.Python
 
-
+# Virtual Environments
 .venv/
 venv/
 ENV/
+env/
 
-
+# IDE & Editor Configurations
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
-
+# OS Generated Files
 .DS_Store
 Thumbs.db
+ehthumbs.db
 
+# Test & Coverage Artifacts
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+coverage.xml
 
+# Logs & Databases
 *.log
-
-
 *.db
 *.sqlite
 *.sqlite3
 
+# Docker & CI/CD
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+.dockerignore
 
-.pytest_cache/
-.hypothesis/
+# Documentation & Misc
+README.md
+.agents/
+.gemini/

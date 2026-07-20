@@ -12,8 +12,6 @@ from src.api.v1.gmail import google_router
 from src.core.config import settings
 from src.core.database import close_db
 
-# environment variables loaded via settings
-
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -51,7 +49,7 @@ allowed_origins = [
     "http://127.0.0.1:5173",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://inbox-os.vercel.app",  # Fixed typo from inbos-os
+    "https://inbox-os.vercel.app",
 ]
 
 allowed_origins_env = settings.ALLOWED_ORIGINS

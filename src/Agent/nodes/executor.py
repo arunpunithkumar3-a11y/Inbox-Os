@@ -1,7 +1,8 @@
 import logging
+from langchain_core.messages import SystemMessage
 from src.agent.state import GmailState
 from src.agent.prompts import get_executor_prompt
-from src.agent.tools import get_llm, formatted_tools_desc, tools_list
+from src.agent.tools import get_llm, tools_list
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,14 @@ async def Executor_agent(state: GmailState) -> dict:
         }
 
     query = state["user_query"]
+    summary = state.get("summary", "")
+
+    history_msgs = list(state["messages"])
+    if summary:
+        history_msgs.insert(
+            0,
+            SystemMessage(content=f"Summary of earlier conversation:\n{summary}"),
+        )
 
     try:
         model = await get_llm()
@@ -30,8 +39,8 @@ async def Executor_agent(state: GmailState) -> dict:
         response = await ex_chain.ainvoke({
             "query": query,
             "plan": plan,
-            "history": state["messages"],
-            "av": formatted_tools_desc,
+            "summary": summary if summary else "None",
+            "history": history_msgs,
         })
         return {"messages": [response], "success": True}
     except Exception as exc:
@@ -40,3 +49,4 @@ async def Executor_agent(state: GmailState) -> dict:
             "error": {"type": "Executor_agent", "message": str(exc)},
             "success": False,
         }
+

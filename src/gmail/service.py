@@ -21,14 +21,11 @@ class GmailTool:
     def _get_client(self):
         creds = Credentials(
             token=self.token_data["access_token"],
-            refresh_token=self.token_data["refresh_token"],
+            refresh_token=self.token_data.get("refresh_token"),
             token_uri="https://oauth2.googleapis.com/token",
             client_id=settings.CLIENT_ID,
             client_secret=settings.CLIENT_SECRET,
         )
-
-        if creds.expired:
-            creds.refresh(Request())
 
         return build("gmail", "v1", credentials=creds)
 
@@ -201,6 +198,150 @@ class GmailTool:
         )
         print(f"Trashed: {message_id}")
 
+    async def list_labels(self):
+        response = await asyncio.to_thread(
+            self._client.users().labels().list(userId="me").execute
+        )
+        raw_labels = response.get("labels", [])
+        labels = [
+            {
+                "id": label["id"],
+                "name": label["name"],
+                "type": label.get("type"),
+                "messages_total": label.get("messagesTotal"),
+                "messages_unread": label.get("messagesUnread"),
+            }
+            for label in raw_labels
+        ]
+        return labels
+
+    async def _resolve_label_id(self, label_name: str, create_if_missing: bool = False):
+        labels_resp = await asyncio.to_thread(
+            self._client.users().labels().list(userId="me").execute
+        )
+        labels = labels_resp.get("labels", [])
+        for label in labels:
+            if (
+                label["name"].lower() == label_name.lower()
+                or label["id"].lower() == label_name.lower()
+            ):
+                return label["id"]
+
+        if create_if_missing:
+            new_label = await asyncio.to_thread(
+                self._client.users()
+                .labels()
+                .create(userId="me", body={"name": label_name})
+                .execute
+            )
+            return new_label["id"]
+
+        return None
+
+    async def add_label(self, message_id: str, label_name: str):
+        label_id = await self._resolve_label_id(label_name, create_if_missing=True)
+        result = await asyncio.to_thread(
+            self._client.users()
+            .messages()
+            .modify(userId="me", id=message_id, body={"addLabelIds": [label_id]})
+            .execute
+        )
+        print(f"Added label '{label_name}' ({label_id}) to message {message_id}")
+        return result
+
+    async def remove_label(self, message_id: str, label_name: str):
+        label_id = await self._resolve_label_id(label_name, create_if_missing=False)
+        if not label_id:
+            raise ValueError(f"Label '{label_name}' not found.")
+        result = await asyncio.to_thread(
+            self._client.users()
+            .messages()
+            .modify(userId="me", id=message_id, body={"removeLabelIds": [label_id]})
+            .execute
+        )
+        print(f"Removed label '{label_name}' ({label_id}) from message {message_id}")
+        return result
+
+    async def create_draft(
+        self,
+        to: str,
+        subject: str,
+        body: str,
+        cc: str = None,
+        bcc: str = None,
+        attachment_path: str = None,
+    ):
+        msg = MIMEMultipart()
+        msg["To"] = to
+        msg["Subject"] = subject
+        if cc:
+            msg["Cc"] = cc
+        if bcc:
+            msg["Bcc"] = bcc
+
+        msg.attach(MIMEText(body, "plain"))
+
+        if attachment_path:
+            with open(attachment_path, "rb") as f:
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(f.read())
+            encoders.encode_base64(part)
+            part.add_header(
+                "Content-Disposition", f'attachment; filename="{attachment_path}"'
+            )
+            msg.attach(part)
+
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+        result = await asyncio.to_thread(
+            self._client.users()
+            .drafts()
+            .create(userId="me", body={"message": {"raw": raw}})
+            .execute
+        )
+        print(f"Draft created! Draft ID: {result['id']}")
+        return result
+
+    async def get_email_stats(self):
+        profile = await asyncio.to_thread(
+            self._client.users().getProfile(userId="me").execute
+        )
+
+        labels_resp = await asyncio.to_thread(
+            self._client.users().labels().list(userId="me").execute
+        )
+        labels = labels_resp.get("labels", [])
+
+        label_counts = {}
+        for label in labels:
+            lname = label["name"]
+            lid = label["id"]
+            if lid in [
+                "INBOX",
+                "UNREAD",
+                "STARRED",
+                "DRAFT",
+                "TRASH",
+                "SPAM",
+                "IMPORTANT",
+            ]:
+                label_details = await asyncio.to_thread(
+                    self._client.users().labels().get(userId="me", id=lid).execute
+                )
+                label_counts[lname.lower()] = {
+                    "messages_total": label_details.get("messagesTotal", 0),
+                    "messages_unread": label_details.get("messagesUnread", 0),
+                    "threads_total": label_details.get("threadsTotal", 0),
+                    "threads_unread": label_details.get("threadsUnread", 0),
+                }
+
+        return {
+            "email_address": profile.get("emailAddress"),
+            "messages_total": profile.get("messagesTotal"),
+            "threads_total": profile.get("threadsTotal"),
+            "history_id": profile.get("historyId"),
+            "folder_counts": label_counts,
+        }
+
 
 async def get_gmail_tool(user_id: str) -> GmailTool:
     from src.core.database import async_session_factory
@@ -214,7 +355,7 @@ async def get_gmail_tool(user_id: str) -> GmailTool:
 
         creds = await refresh_access_token(user, session)
         token_data = {
-            "access_token": decrypt_token(creds.token),
-            "refresh_token": decrypt_token(creds.refresh_token),
+            "access_token": creds.token,
+            "refresh_token": creds.refresh_token,
         }
         return GmailTool(token_data=token_data)

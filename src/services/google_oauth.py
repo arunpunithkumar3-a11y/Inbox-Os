@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 
 from fastapi import HTTPException
 from google.auth.transport.requests import Request
@@ -9,9 +8,9 @@ from google_auth_oauthlib.flow import Flow
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
+from src.core.config import settings
 from src.core.security import decrypt_token, encrypt_token
 from src.models.database import GoogleAccount, OAuthSession
-from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -48,17 +47,15 @@ def create_flow() -> Flow:
 
 async def refresh_access_token(user, session):
     """Refresh Google OAuth credentials if expired, and auto-encrypt legacy plaintext DB records."""
-    raw_access = decrypt_token(user.access_token)
-    raw_refresh = decrypt_token(user.refresh_token)
+    raw_access = decrypt_token(user.access_token) if user.access_token else None
+    raw_refresh = decrypt_token(user.refresh_token) if user.refresh_token else None
 
-    # Auto-migrate legacy plaintext database records to encrypted Fernet strings
-    if (user.access_token and not user.access_token.startswith("gAAAAA")) or (
-        user.refresh_token and not user.refresh_token.startswith("gAAAAA")
-    ):
-        user.access_token = encrypt_token(raw_access)
-        user.refresh_token = encrypt_token(raw_refresh)
-        await session.commit()
-        await session.refresh(user)
+    if not raw_refresh:
+        logger.warning("No refresh token stored for Google account %s", user.google_email)
+        raise HTTPException(
+            status_code=401,
+            detail="Re-authentication required: No refresh token stored.",
+        )
 
     creds = Credentials(
         token=raw_access,
@@ -74,6 +71,8 @@ async def refresh_access_token(user, session):
             await asyncio.to_thread(creds.refresh, Request())
 
             user.access_token = encrypt_token(creds.token)
+            if creds.refresh_token:
+                user.refresh_token = encrypt_token(creds.refresh_token)
             user.token_expiry = (
                 creds.expiry.replace(tzinfo=None) if creds.expiry else None
             )
@@ -96,7 +95,8 @@ class GoogleService:
         existing = await self.get_gmail_user_by_id(str(data.get("user_uid")), session)
         if existing:
             existing.access_token = data["access_token"]
-            existing.refresh_token = data.get("refresh_token") or existing.refresh_token
+            if data.get("refresh_token"):
+                existing.refresh_token = data["refresh_token"]
             existing.token_expiry = data.get("token_expiry")
             existing.scope = data.get("scope", existing.scope)
             existing.google_email = data.get("google_email", existing.google_email)

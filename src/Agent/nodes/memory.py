@@ -31,7 +31,8 @@ async def memory(state: GmailState, config=None) -> dict:
             try:
                 model = await get_llm()
                 extract_chain = (
-                    get_extract_prompt() | model.with_structured_output(extract_data, method="json_mode")
+                    get_extract_prompt()
+                    | model.with_structured_output(extract_data, method="json_mode")
                 ).with_retry(stop_after_attempt=3)
                 response = await extract_chain.ainvoke(
                     {"query": query, "existing_memory": stored_data}
@@ -70,7 +71,7 @@ async def memory(state: GmailState, config=None) -> dict:
         model = await get_llm()
         response = await model.ainvoke(messages_for_summary)
 
-        messages_to_delete = state["messages"][:-6]
+        messages_to_delete = state["messages"][:-2]
 
         result["summary"] = response.content
         result["messages"] = [RemoveMessage(id=m.id) for m in messages_to_delete]

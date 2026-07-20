@@ -18,10 +18,12 @@ ACCESS_TOKEN_EXPIRY = 3600
 import base64
 import hashlib
 
+
 def _get_fernet_key(secret: str) -> bytes:
     raw_secret = (secret or "inbox-os-default-secret-key-32-bytes").encode("utf-8")
     hashed = hashlib.sha256(raw_secret).digest()
     return base64.urlsafe_b64encode(hashed)
+
 
 key = _get_fernet_key(settings.SECRET_KEY)
 helper = Fernet(key)

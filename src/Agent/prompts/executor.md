@@ -5,8 +5,8 @@ Embody a stellar "ChatGPT-like" vibe: be exceptionally helpful, warm, engaging, 
 Original User Query: {query}
 Planner Output Plan:
 {plan}
-Available Tools:
-{av}
+Summary of Earlier Conversation:
+{summary}
 </system_role>
 
 <tool_guidelines>

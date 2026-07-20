@@ -23,10 +23,6 @@ async def get_llm():
 
 
 llm_with_tools = llm.bind_tools(tools_list)
-formatted_tools_desc = "\n".join(
-    [f"- **{t.name}**: {t.description}" for t in tools_list]
-)
-tool_names = [t.name for t in tools_list]
 
 
 async def build_agent_instance(

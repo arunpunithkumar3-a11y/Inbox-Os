@@ -98,11 +98,22 @@ async def callback(
             detail="Unable to fetch email from Google",
         )
 
+    existing_user = await g_serv.get_gmail_user_by_id(oauth_session.user_uid, session)
+    if not credentials.refresh_token and (
+        not existing_user or not existing_user.refresh_token
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Offline access grant missing refresh token. Please re-authenticate and grant full access.",
+        )
+
     data = {
         "google_email": email,
         "user_uid": oauth_session.user_uid,
         "access_token": encrypt_token(credentials.token),
-        "refresh_token": encrypt_token(credentials.refresh_token),
+        "refresh_token": encrypt_token(credentials.refresh_token)
+        if credentials.refresh_token
+        else None,
         "token_expiry": credentials.expiry.replace(tzinfo=None)
         if credentials.expiry
         else None,
