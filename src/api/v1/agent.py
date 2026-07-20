@@ -8,12 +8,12 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.types import Command
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from src.agent.agent import GmailAgent
-from src.agent.tools import build_agent_instance, build_thread
-from src.core.database import get_session
-from src.core.security import verify_token
-from src.models.agent import AgentEndpointRequest, ResumeRequest
-from src.services.agent import AgentService
+from agent.agent import GmailAgent
+from agent.tools import build_agent_instance, build_thread
+from core.database import get_session
+from core.security import verify_token
+from models.agent import AgentEndpointRequest, ResumeRequest
+from services.agent import AgentService
 
 logger = logging.getLogger(__name__)
 

@@ -1,26 +1,32 @@
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from src.agent import nodes
-from src.agent.state import GmailState
+from agent.nodes.approval import Approval_Agent, route_after_approval
+from agent.nodes.direct import direct
+from agent.nodes.executor import Executor_agent
+from agent.nodes.memory import memory
+from agent.nodes.planner import Planner_Agent
+from agent.nodes.router import router, decide
+from agent.state import GmailState
+from agent.tools import tools_list
 
 
 async def agent_graph(checkpointer, state_schema=GmailState):
     g = StateGraph(state_schema)
 
-    g.add_node("router", nodes.router)
-    g.add_node("planner", nodes.Planner_Agent)
-    g.add_node("ex", nodes.Executor_agent)
-    g.add_node("tool", ToolNode(nodes.tools_list))
-    g.add_node("memory", nodes.memory)
-    g.add_node("direct", nodes.direct)
-    g.add_node("approval_gate", nodes.Approval_Agent)
+    g.add_node("router", router)
+    g.add_node("planner", Planner_Agent)
+    g.add_node("ex", Executor_agent)
+    g.add_node("tool", ToolNode(tools_list))
+    g.add_node("memory", memory)
+    g.add_node("direct", direct)
+    g.add_node("approval_gate", Approval_Agent)
 
     g.add_edge(START, "memory")
     g.add_edge("memory", "router")
     g.add_conditional_edges(
         "router",
-        nodes.decide,
+        decide,
         {
             "direct": "direct",
             "planner": "planner",
@@ -34,7 +40,7 @@ async def agent_graph(checkpointer, state_schema=GmailState):
     )
     g.add_conditional_edges(
         "approval_gate",
-        nodes.route_after_approval,
+        route_after_approval,
         {
             "ex": "ex",
             "tool": "tool",

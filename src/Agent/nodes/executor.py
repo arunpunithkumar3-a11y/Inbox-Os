@@ -1,8 +1,8 @@
 import logging
 from langchain_core.messages import SystemMessage
-from src.agent.state import GmailState
-from src.agent.prompts import get_executor_prompt
-from src.agent.tools import get_llm, tools_list
+from agent.state import GmailState
+from agent.prompts.prompt_loader import get_executor_prompt
+from agent.tools import get_llm, tools_list
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,8 @@
 import logging
 
-from src.agent.graph import agent_graph
-from src.agent.state import GmailState
-from src.core.database import get_checkpointer
+from agent.graph import agent_graph
+from agent.state import GmailState
+from core.database import get_checkpointer
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 import logging
 from upstash_redis.asyncio import Redis
-from src.core.config import settings
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 

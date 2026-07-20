@@ -3,11 +3,11 @@ import uuid
 
 from langchain_core.messages import HumanMessage, RemoveMessage
 
-from src.agent.models import extract_data
-from src.agent.prompts import get_extract_prompt
-from src.agent.state import GmailState
-from src.agent.tools import get_llm
-from src.core.database import get_store
+from agent.models import extract_data
+from agent.prompts.prompt_loader import get_extract_prompt
+from agent.state import GmailState
+from agent.tools import get_llm
+from core.database import get_store
 
 logger = logging.getLogger(__name__)
 

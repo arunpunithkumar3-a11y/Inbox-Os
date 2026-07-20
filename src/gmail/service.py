@@ -9,8 +9,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from src.core.config import settings
-from src.core.security import decrypt_token
+from core.config import settings
+from core.security import decrypt_token
 
 
 class GmailTool:
@@ -344,8 +344,8 @@ class GmailTool:
 
 
 async def get_gmail_tool(user_id: str) -> GmailTool:
-    from src.core.database import async_session_factory
-    from src.services.google_oauth import GoogleService, refresh_access_token
+    from core.database import async_session_factory
+    from services.google_oauth import GoogleService, refresh_access_token
 
     g_serv = GoogleService()
     async with async_session_factory() as session:

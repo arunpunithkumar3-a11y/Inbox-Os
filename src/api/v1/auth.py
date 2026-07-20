@@ -4,11 +4,11 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from src.core.database import get_session
-from src.core.redis import add_jti_to_blacklist
-from src.core.security import create_access_token, verify_password, verify_refresh_token
-from src.models.auth import UserLogin, UserSignup
-from src.services.auth import UserService
+from core.database import get_session
+from core.redis import add_jti_to_blacklist
+from core.security import create_access_token, verify_password, verify_refresh_token
+from models.auth import UserLogin, UserSignup
+from services.auth import UserService
 
 logger = logging.getLogger(__name__)
 

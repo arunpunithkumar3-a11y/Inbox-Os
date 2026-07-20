@@ -1,9 +1,9 @@
 import logging
 from langchain_core.messages import SystemMessage
-from src.agent.state import GmailState
-from src.agent.prompts import get_system_prompt
-from src.agent.tools import get_llm
-from src.core.database import get_store
+from agent.state import GmailState
+from agent.prompts.prompt_loader import get_system_prompt
+from agent.tools import get_llm
+from core.database import get_store
 
 logger = logging.getLogger(__name__)
 

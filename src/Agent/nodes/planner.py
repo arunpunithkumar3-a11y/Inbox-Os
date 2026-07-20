@@ -1,8 +1,8 @@
 import logging
-from src.agent.state import GmailState
-from src.agent.prompts import get_planner_prompt
-from src.agent.models import Planner
-from src.agent.tools import get_llm
+from agent.state import GmailState
+from agent.prompts.prompt_loader import get_planner_prompt
+from agent.models import Planner
+from agent.tools import get_llm
 
 logger = logging.getLogger(__name__)
 
