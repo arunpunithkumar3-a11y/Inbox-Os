@@ -26,8 +26,6 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.modify",
 ]
 
-REDIRECT_URI = settings.GOOGLE_REDIRECT_URI
-
 
 def create_flow() -> Flow:
     flow = Flow.from_client_config(
@@ -40,7 +38,7 @@ def create_flow() -> Flow:
             }
         },
         scopes=SCOPES,
-        redirect_uri=REDIRECT_URI,
+        redirect_uri="https://inboxos-ai.onrender.com/gmail/g/callback",
     )
     return flow
 
@@ -51,7 +49,9 @@ async def refresh_access_token(user, session):
     raw_refresh = decrypt_token(user.refresh_token) if user.refresh_token else None
 
     if not raw_refresh:
-        logger.warning("No refresh token stored for Google account %s", user.google_email)
+        logger.warning(
+            "No refresh token stored for Google account %s", user.google_email
+        )
         raise HTTPException(
             status_code=401,
             detail="Re-authentication required: No refresh token stored.",
