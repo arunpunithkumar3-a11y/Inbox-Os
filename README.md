@@ -14,8 +14,6 @@
 
 **Inbox OS is a production-grade, stateful AI Mailbox Operating System that transforms email management into an autonomous, safe, and intelligent task orchestration engine using LangGraph, FastAPI, PostgreSQL, and Human-in-the-Loop controls.**
 
-[Explore API Docs](http://localhost:8000/docs) · [Report Bug](https://github.com/arunpunithkumar3-a11y/Inbox-Os/issues) · [Request Feature](https://github.com/arunpunithkumar3-a11y/Inbox-Os/issues)
-
 </div>
 
 ---
@@ -35,7 +33,6 @@
 - [11. Local Development Setup](#-11-local-development-setup)
 - [12. Database Migrations (Alembic)](#-12-database-migrations-alembic)
 - [13. Production Deployment (Render & Docker)](#-13-production-deployment-render--docker)
-- [14. License](#-14-license)
 
 ---
 
@@ -413,9 +410,3 @@ docker run -d -p 8000:8000 --env-file .env inbox-os:latest
    uvicorn src.main:app --host 0.0.0.0 --port $PORT
    ```
 6. Copy all variables from `.env` into Render's **Environment Variables** settings tab.
-
----
-
-## 📜 14. License
-
-Distributed under the MIT License. See `LICENSE` for more information.
