@@ -33,6 +33,9 @@ async def direct(state: GmailState, config=None) -> dict:
     if summary:
         history_msgs.append(SystemMessage(content=f"Summary of earlier messages: {summary}"))
 
+    from src.agent.tools import sanitize_messages
+    history_msgs = sanitize_messages(history_msgs)
+
     try:
         model = await get_llm()
         prompt_chain = (get_system_prompt() | model).with_retry(stop_after_attempt=3)

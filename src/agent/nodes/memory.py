@@ -68,6 +68,8 @@ async def memory(state: GmailState, config=None) -> dict:
             prompt = "Summarize the above conversation."
 
         messages_for_summary = state["messages"] + [HumanMessage(content=prompt)]
+        from src.agent.tools import sanitize_messages
+        messages_for_summary = sanitize_messages(messages_for_summary)
         model = await get_llm()
         response = await model.ainvoke(messages_for_summary)
 

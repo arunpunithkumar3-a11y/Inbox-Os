@@ -1,10 +1,11 @@
+import json
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from src.gmail.service import get_gmail_tool
 
 
 @tool
-async def read_emails(query: str = "", max_results: int = 5, config: RunnableConfig = None) -> list:
+async def read_emails(query: str = "", max_results: int = 5, config: RunnableConfig = None) -> str:
     """Fetch emails using search queries.
     
     query examples:
@@ -19,4 +20,5 @@ async def read_emails(query: str = "", max_results: int = 5, config: RunnableCon
         raise ValueError("User context (user_uid) is missing from the configuration.")
         
     gmail_tool = await get_gmail_tool(str(user_id))
-    return await gmail_tool.read_emails(max_results=max_results, query=query)
+    res = await gmail_tool.read_emails(max_results=max_results, query=query)
+    return json.dumps(res)

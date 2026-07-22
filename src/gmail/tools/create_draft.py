@@ -1,3 +1,4 @@
+import json
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from src.gmail.service import get_gmail_tool
@@ -12,7 +13,7 @@ async def create_draft(
     bcc: str = None,
     attachment_path: str = None,
     config: RunnableConfig = None,
-) -> dict:
+) -> str:
     """Creates a draft email with optional CC, BCC, and attachment."""
     configurable = config.get("configurable", {}) if config else {}
     user_id = configurable.get("user_uid")
@@ -20,7 +21,7 @@ async def create_draft(
         raise ValueError("User context (user_uid) is missing from the configuration.")
 
     gmail_tool = await get_gmail_tool(str(user_id))
-    return await gmail_tool.create_draft(
+    res = await gmail_tool.create_draft(
         to=to,
         subject=subject,
         body=body,
@@ -28,3 +29,4 @@ async def create_draft(
         bcc=bcc,
         attachment_path=attachment_path,
     )
+    return json.dumps(res)

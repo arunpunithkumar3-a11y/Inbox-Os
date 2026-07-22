@@ -1,13 +1,38 @@
+import json
 import logging
 
 from fastapi import Depends
 from langchain_openai import ChatOpenAI
+from langchain_core.messages import BaseMessage
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.core.config import settings
 from src.core.database import get_session
 from src.gmail.tools.tools_list import tools_list
 from src.services.agent import AgentService
+
+
+def sanitize_messages(messages: list) -> list:
+    sanitized = []
+    for msg in messages:
+        if not isinstance(msg, BaseMessage):
+            sanitized.append(msg)
+            continue
+        if not isinstance(msg.content, str):
+            try:
+                content_str = json.dumps(msg.content)
+            except Exception:
+                content_str = str(msg.content)
+            
+            if hasattr(msg, "model_copy"):
+                new_msg = msg.model_copy(update={"content": content_str})
+            else:
+                new_msg = msg.copy(update={"content": content_str})
+            sanitized.append(new_msg)
+        else:
+            sanitized.append(msg)
+    return sanitized
+
 
 agent_service = AgentService()
 logger = logging.getLogger(__name__)

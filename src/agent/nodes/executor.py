@@ -32,6 +32,9 @@ async def Executor_agent(state: GmailState) -> dict:
             SystemMessage(content=f"Summary of earlier conversation:\n{summary}"),
         )
 
+    from src.agent.tools import sanitize_messages
+    history_msgs = sanitize_messages(history_msgs)
+
     try:
         model = await get_llm()
         llm_with_tools = model.bind_tools(tools_list)
