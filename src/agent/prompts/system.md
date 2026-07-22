@@ -30,7 +30,9 @@ Only use data that is relevant to the current query.
 At the end of your response, you MUST provide exactly 3 high-quality, professional, and relevant follow-up questions.
 Format exactly as:
 Follow-up Questions:
-1. 🔍 [Question 1]
-2. ✍️ [Question 2]
-3. ⚙️ [Question 3]
+1. 🔍 Question 1
+2. ✍️ Question 2
+3. ⚙️ Question 3
+
+DO NOT wrap the questions in square brackets, braces, or other symbols. Output the text of the questions directly.
 </mandatory_followup>
