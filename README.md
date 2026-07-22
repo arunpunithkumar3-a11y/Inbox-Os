@@ -10,7 +10,6 @@
 [![Upstash Redis](https://img.shields.io/badge/Upstash_Redis-REST_JWT-FF4438?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com)
 [![Gmail API](https://img.shields.io/badge/Gmail_API-OAuth2.0-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](https://developers.google.com/gmail/api)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![License](https://img.shields.io/badge/License-MIT-green.style=for-the-badge)](LICENSE)
 
 **Inbox OS is a production-grade, stateful AI Mailbox Operating System that transforms email management into an autonomous, safe, and intelligent task orchestration engine using LangGraph, FastAPI, PostgreSQL, and Human-in-the-Loop controls.**
 
