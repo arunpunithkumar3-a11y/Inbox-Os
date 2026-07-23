@@ -19,7 +19,7 @@ from src.api.v1.agent import Agent_router
 from src.api.v1.auth import auth_router
 from src.api.v1.gmail import google_router
 from src.core.config import settings
-from src.core.database import close_db, init_db
+from src.core.database import close_db
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -35,8 +35,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-    await init_db()
 
     yield
     from src.core.redis import redis_client
